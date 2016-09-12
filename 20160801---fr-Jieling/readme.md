@@ -1,2 +1,4 @@
-These files are inherited from Dr. Jieling Zhu, just here for storage.
-Most of the code here stands alone, executed individually
+# phd_collagen/20160801---fr-Jieling/
+
+These files in this file are inherited from Dr. Jieling Zhu, just here for storage.
+Most of the code here stands alone, executed individually.
