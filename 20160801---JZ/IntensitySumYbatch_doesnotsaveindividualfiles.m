@@ -7,9 +7,6 @@ function e = IntensitySumYbatch;
 % first, you have to find the folder
 folder = uigetdir; % check the help for uigetdir to see how to specify a starting path, which makes your life easier
 
-% folder to write new files to (must make folder first!)
-outputDir = uigetdir;
-
 % get the names of all files. dirListing is a struct array.
 dirListing = dir(folder);
 
@@ -17,19 +14,15 @@ dirListing = dir(folder);
 % directories, so you have to check for them.
 % only select files that are images.
 
-fid = fopen('Angle.csv','wt');
-fprintf(fid,  'FileName,\tSumTotal\n\n%s');
+fid = fopen('10-27-12 FITC_AS collagen gelation 6 (32 degrees, lower intensity) CTM_intensity.txt','wt');
+fprintf(fid,  'FileName\tSumTotal\tSumAboveThreshhold\tIntensityFraction \n\n%s');
 
-%fprintf(fid,  'FileName\tTime (min)\tSumTotal\tSumAboveThreshhold\tIntensityFraction \n\n%s');
-
-%countTime = -0.5;  
-    
 for d = 1:length(dirListing)
 
     if dirListing(d).bytes >= 500000 % this ignores any "hidden" files 
         % in the folder that are not image files of size at least 
-        % larger than this size  
-        
+        % larger than this size
+    
 fileName = fullfile(folder,dirListing(d).name);
 
 img = imread(fileName); 
@@ -40,21 +33,17 @@ grey_img = img;
 
 a=size(grey_img);
 
-%replace the center spot by the upper-left corner
-%size of center matrix is subject to modification
-    rx=round(a(1)/2);
-    cy=round(a(2)/2);
-    xcount=1;
-    for r=(rx-140):(rx+160)
-        xcount=xcount+1;
-        ycount=1;
-        for c=(cy-150):(cy+240)
-            ycount=ycount+1;
-            grey_img(r,c)=grey_img(xcount,ycount);
+% clean z position
+ for x=500:1024
+    for y=1:69
+        if grey_img(x,y)~=226;
+            continue
+        else
+            grey_img(x,y)=0;
         end
     end
+ end
 
-    
 %sum up intensities of all pixels
 SumTotal=sum(grey_img(:));
 
@@ -78,27 +67,16 @@ n=numel(grey_img);
 IntensityFraction=count/n;  
 BackgroundPerPixel=SumBackground/(n*(1-IntensityFraction));
 SignalPerPixel=SumAbove/(n*IntensityFraction);
-
-%countTime = countTime + 0.5; 
-
+ 
 f=dirListing(d).name;
 
-%Saves thresholded image with spot replaced
-[pathstr,name,ext] = fileparts(fileName);
+fprintf(fid, '%s      , %6.4f,   %6.4f,  %6.4f \n', f, SumTotal, SumAbove, IntensityFraction);
 
-newFolder = fullfile(outputDir, [name '_rs.tif' ]);
+    end
 
-imwrite(grey_img, newFolder,'tif');
+end % for-loop
 
-%fprintf(fid, '%s      , %f,  %6.4f,   %6.4f,  %6.4f \n', f, countTime, SumTotal, SumAbove, IntensityFraction);
-
-fprintf(fid, '%s      , %6.4f\n', f, SumTotal);
-
-    end % end if-loop  
-    
-end % end for-loop
-
-%fprintf(fid,  '\n\nthreshold %6.4f', minIntensity);
+fprintf(fid,  '\n\nthreshold %6.4f', minIntensity);
 fclose(fid); 
 
 return;
